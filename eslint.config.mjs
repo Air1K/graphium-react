@@ -20,7 +20,7 @@ export default [
     },
   },
   {
-    files: ['webpack.config.js'],
+    files: ['rollup.config.mjs'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
       'no-undef': 'off',
