@@ -1,4 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
+import useContextMenu from '../../hooks/useContextMenu';
+import ContextMenu from '../ContextMenu/ContextMeny';
 export interface AreaProps {
   width?: number;
   height?: number;
@@ -10,10 +12,16 @@ interface Point {
   y: number;
 }
 
-const Area = ({ width = 800, height = 600 }: AreaProps) => {
+const Area = ({ width = 800, height = 600 }: AreaProps): React.ReactElement => {
+  const { menuVisible, menuPosition, handleContextMenu, handleCloseMenu } = useContextMenu();
+  const menuItems = [
+    { label: 'Action 1', action: 'Action 1' },
+    { label: 'Action 2', action: 'Action 2' },
+    { label: 'Action 3', action: 'Action 3' },
+  ];
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [points, setPoints] = useState<Point[]>([]);
-
+  const radiusNode = 12;
   // Обработчик кликов на canvas
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (event.ctrlKey) {
@@ -41,7 +49,7 @@ const Area = ({ width = 800, height = 600 }: AreaProps) => {
         // Рисуем каждую точку
         points.forEach((point) => {
           ctx.beginPath();
-          ctx.arc(point.x, point.y, 12, 0, Math.PI * 2); // Радиус круга 12px (24px диаметр)
+          ctx.arc(point.x, point.y, radiusNode, 0, Math.PI * 2); // Радиус круга 12px (24px диаметр)
           ctx.fillStyle = 'blue';
           ctx.fill();
           ctx.closePath();
@@ -51,13 +59,16 @@ const Area = ({ width = 800, height = 600 }: AreaProps) => {
   }, [points]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={width} // Ширина области
-      height={height} // Высота области
-      style={{ border: '1px solid black', display: 'block', margin: '0 auto' }}
-      onClick={handleCanvasClick}
-    />
+    <div onContextMenu={handleContextMenu}>
+      <canvas
+        ref={canvasRef}
+        width={width} // Ширина области
+        height={height} // Высота области
+        style={{ border: '1px solid black', display: 'block', margin: '0 auto' }}
+        onClick={handleCanvasClick}
+      />
+      {menuVisible && <ContextMenu x={menuPosition.x} y={menuPosition.y} onClose={handleCloseMenu} items={menuItems} />}
+    </div>
   );
 };
 
