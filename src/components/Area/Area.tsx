@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import useContextMenu from '../../hooks/useContextMenu';
 import ContextMenu from '../ContextMenu/ContextMeny';
+import styles from './Area.module.scss';
 export interface AreaProps {
   width?: number;
   height?: number;
@@ -62,9 +63,9 @@ const Area = ({ width = 800, height = 600 }: AreaProps): React.ReactElement => {
     <div onContextMenu={handleContextMenu}>
       <canvas
         ref={canvasRef}
-        width={width} // Ширина области
-        height={height} // Высота области
-        style={{ border: '1px solid black', display: 'block', margin: '0 auto' }}
+        width={width}
+        height={height}
+        className={styles.canvas}
         onClick={handleCanvasClick}
       />
       {menuVisible && <ContextMenu x={menuPosition.x} y={menuPosition.y} onClose={handleCloseMenu} items={menuItems} />}
