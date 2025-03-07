@@ -31,7 +31,7 @@ export default [
       resolve(),
       commonjs(),
       postcss({
-        modules: true,
+        modules: false,
         use: ['sass'],
         extract: true,
         sourceMap: true,

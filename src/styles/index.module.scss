@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..900&display=swap');
+
+.root {
+  font-family: "Golos Text", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+:root {
+  /* Основные цвета */
+  --background-color: Canvas; /* Фон окна (обычно белый/черный в зависимости от темы) */
+  --text-color: CanvasText; /* Основной цвет текста */
+
+  /* Цвета для кнопок */
+  --button-background: ButtonFace; /* Фон кнопок */
+  --button-text: ButtonText; /* Текст кнопки */
+
+  /* Цвета полей ввода */
+  --input-background: Field; /* Фон инпутов (input, textarea) */
+  --input-text: FieldText; /* Цвет текста в инпутах */
+
+  /* Выделение текста */
+  --selection-background: Highlight; /* Фон выделенного текста */
+  --selection-text: HighlightText; /* Цвет текста выделенного текста */
+
+  /* Деактивированные элементы */
+  --disabled-text: GrayText; /* Отключенный текст (серый) */
+
+  /* Границы и разделители */
+  --border-color: ThreeDShadow; /* Цвет границ 3D-элементов */
+  --border-highlight: ThreeDHighlight; /* Цвет бликов на границах 3D-элементов */
+
+  /* Системные цвета ссылок */
+  --link-color: LinkText; /* Цвет активных ссылок */
+  --visited-link-color: VisitedText; /* Цвет посещенных ссылок */
+  --active-link-color: ActiveText; /* Цвет активной ссылки при клике */
+
+  /* Дополнительные цвета */
+  --menu-background: Menu; /* Фон выпадающих меню */
+  --menu-text: MenuText; /* Текст в меню */
+  --menu-highlight: Highlight; /* Цвет фона выделенного пункта меню */
+  --menu-highlight-text: HighlightText; /* Цвет текста выделенного пункта меню */
+}
+

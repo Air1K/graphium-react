@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-
+import styles from './ContextMenu.module.scss';
 interface MenuItem {
   label: string;
   action: string;
@@ -19,18 +19,13 @@ const ContextMenu: FC<ContextMenuProps> = ({ x, y, onClose, items }) => {
 
   return (
     <div
+      className={styles.box}
       style={{
-        position: 'absolute',
         top: y,
         left: x,
-        backgroundColor: 'white',
-        border: '1px solid #ccc',
-        boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)',
-        padding: '10px',
-        zIndex: 1000,
       }}
     >
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+      <ul>
         {items.map((item, index) => (
           <li key={index} onClick={() => handleClick(item.action)}>
             {item.label}
