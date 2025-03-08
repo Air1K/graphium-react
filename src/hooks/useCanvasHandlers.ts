@@ -6,6 +6,7 @@ import { UsePointReturnType } from './usePoint';
 import { RedrawCanvasFunction } from './useCanvasRenderer';
 import { UseEdgeReturnType } from './useEdge';
 import { calculateDistance } from '../utils/calculateDistance';
+import { checkEdgeCollision } from '../utils/checkEdgeCollision';
 
 interface Props {
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -13,14 +14,23 @@ interface Props {
   pointState: UsePointReturnType;
   edgeState: UseEdgeReturnType;
   redrawCanvas: RedrawCanvasFunction;
+  activeEdge: number | null;
+  setActiveEdge: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
-export const useCanvasHandlers = ({ canvasRef, state, pointState, redrawCanvas, edgeState }: Props) => {
-  const { points, addPoint, updatePoint } = pointState;
+export const useCanvasHandlers = ({
+  canvasRef,
+  state,
+  pointState,
+  redrawCanvas,
+  edgeState,
+  activeEdge,
+  setActiveEdge,
+}: Props) => {
+  const { points, addPoint, updatePoint, removePoint } = pointState;
   const [activePoint, setActivePoint] = useState<number | null>(null);
   const dragPoint = useRef<IPoint | null>(null);
-  const { edges, addEdge } = edgeState;
-  const [activeEdge, setActiveEdge] = useState<number | null>(null);
+  const { edges, addEdge, hasEdge, setEdges, removeEdge, removeEdgesForPoint } = edgeState;
   const dragEdge = useRef<IPoint | null>(null);
 
   const handleEvent = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -41,14 +51,33 @@ export const useCanvasHandlers = ({ canvasRef, state, pointState, redrawCanvas, 
     console.log('click');
     if (event.ctrlKey) {
       const mousePos = getMousePosition(event, canvasRef);
-      addPoint(mousePos);
+      const collisionIndex = checkCollision(mousePos, points);
+      if (collisionIndex === null) {
+        addPoint(mousePos);
+      }
       return;
+    }
+    // Удаление
+    if (event.altKey) {
+      const mousePos = getMousePosition(event, canvasRef);
+      const pointCollisionIndex = checkCollision(mousePos, points);
+      if (pointCollisionIndex !== null) {
+        removePoint(pointCollisionIndex);
+        removeEdgesForPoint(pointCollisionIndex);
+        return;
+      }
+      const edge = checkEdgeCollision(mousePos, edges, points, 8);
+      if (edge !== null) {
+        removeEdge(edge.from, edge.to);
+        return;
+      }
     }
     if (activeEdge !== null) {
       const mousePos = getMousePosition(event, canvasRef);
       const collisionIndex = checkCollision(mousePos, points);
       if (collisionIndex === null) {
         setActiveEdge(null);
+        redrawCanvas();
         return;
       }
       const distance = calculateDistance({
@@ -57,6 +86,7 @@ export const useCanvasHandlers = ({ canvasRef, state, pointState, redrawCanvas, 
       });
       addEdge(activeEdge, collisionIndex, distance);
       setActiveEdge(null);
+      return;
     }
   };
   const handleDoubleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -65,6 +95,7 @@ export const useCanvasHandlers = ({ canvasRef, state, pointState, redrawCanvas, 
     const collisionIndex = checkCollision(mousePos, points);
     if (collisionIndex !== null) {
       setActiveEdge(collisionIndex);
+      dragEdge.current = mousePos;
     }
   };
 
@@ -73,14 +104,21 @@ export const useCanvasHandlers = ({ canvasRef, state, pointState, redrawCanvas, 
     // Обновляем временные координаты точки
     if (activePoint !== null && dragPoint.current) {
       dragPoint.current = getMousePosition(event, canvasRef);
-      redrawCanvas((point, index) => (activePoint === index && dragPoint.current ? dragPoint.current : point));
+      redrawCanvas(
+        (point, index) => (activePoint === index && dragPoint.current ? dragPoint.current : point),
+        hasEdge(activePoint)
+          ? (point) => (activePoint === point.index && dragPoint.current ? dragPoint.current : point?.pointTo)
+          : undefined
+      );
       return;
     }
 
     // Обновляем временные координаты ребра
     if (activeEdge !== null && dragEdge.current) {
       dragEdge.current = getMousePosition(event, canvasRef);
-      redrawCanvas((point, index) => (activeEdge === index && dragEdge.current ? dragEdge.current : point));
+      redrawCanvas(undefined, (point) =>
+        activeEdge === point.index && dragEdge.current ? dragEdge.current : point?.pointTo
+      );
       return;
     }
   };
@@ -99,12 +137,23 @@ export const useCanvasHandlers = ({ canvasRef, state, pointState, redrawCanvas, 
 
   const handleMouseUp = () => {
     console.log('up');
-
-    if (activePoint === null || dragPoint.current === null) {
-      setActivePoint(null);
-      return;
-    }
+    if (activePoint === null || dragPoint.current === null) return;
     updatePoint(activePoint, dragPoint.current);
+    if (hasEdge(activePoint)) {
+      const point1 = dragPoint.current ?? { x: 0, y: 0 };
+      setEdges((prevEdges) => {
+        const newEdges = new Map(prevEdges);
+        const connectedNodes = newEdges.get(activePoint);
+        if (!connectedNodes) return newEdges;
+        connectedNodes.forEach((_, to) => {
+          const point2 = points[to];
+          const newDistance = calculateDistance({ point1, point2 });
+          newEdges.get(activePoint)!.set(to, newDistance);
+          newEdges.get(to)?.set(activePoint, newDistance);
+        });
+        return newEdges;
+      });
+    }
     dragPoint.current = null;
     setActivePoint(null);
   };

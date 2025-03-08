@@ -1,21 +1,23 @@
 import { IEdge, IPoint } from '../types/index.type';
-import { radiusNode } from '../constants/constants';
+import { colorEdge, colorEdgeText, colorNode, radiusNode, weightEdge } from '../constants/constants';
 import { useEffect } from 'react';
+import { calculateDistance } from '../utils/calculateDistance';
 
 interface Props {
   canvasRef: React.RefObject<HTMLCanvasElement>;
   points: IPoint[];
   edges: IEdge;
+  activeEdge: number | null;
 }
 
 export interface RedrawCanvasFunction {
   (
-    redrawPoint?: (mouse: IPoint, index: number) => IPoint,
-    redrawEdge?: (mouse: IPoint, index: number) => number
+    redrawPoint?: (point: IPoint, index: number) => IPoint,
+    redrawEdge?: ({ pointTo, index }: { pointTo?: IPoint; index: number }) => IPoint | undefined
   ): void;
 }
 
-export const useCanvasRenderer = ({ canvasRef, points, edges }: Props) => {
+export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge }: Props) => {
   const redrawCanvas: RedrawCanvasFunction = (redrawPoint, redrawEdge) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -23,35 +25,54 @@ export const useCanvasRenderer = ({ canvasRef, points, edges }: Props) => {
     if (!ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // console.clear();
+    edges.forEach((connectedNodes, from) => {
+      // console.log('forEach edges', connectedNodes?.size, Boolean(connectedNodes?.size));
+      connectedNodes.forEach((distance, to) => {
+        const positionFrom = activeEdge !== null ? points[from] : redrawEdge?.({ pointTo: points[from], index: from });
+        const positionTo = activeEdge !== null ? points[to] : redrawEdge?.({ pointTo: points[to], index: to });
+
+        // console.log(positionFrom);
+        const { x: x1, y: y1 } = positionFrom ?? points[from];
+        const { x: x2, y: y2 } = positionTo ?? points[to];
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = colorEdge;
+        ctx.lineWidth = weightEdge;
+        ctx.stroke();
+
+        // Вывод расстояния на середине линии
+        const newDistance =
+          positionFrom && positionTo ? calculateDistance({ point1: positionFrom, point2: positionTo }) : distance;
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+        ctx.font = '14px Arial';
+        ctx.fillStyle = colorEdgeText;
+        ctx.fillText(newDistance.toFixed(1), midX, midY);
+      });
+    });
+    if (activeEdge !== null) {
+      const newPos = redrawEdge?.({ index: activeEdge });
+      if (newPos) {
+        const { x: x1, y: y1 } = points[activeEdge];
+        const { x: x2, y: y2 } = newPos;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = colorEdge;
+        ctx.lineWidth = 4;
+        ctx.stroke();
+      }
+    }
 
     points.forEach((point, index) => {
       const { x, y } = redrawPoint?.(point, index) ?? point;
       ctx.beginPath();
       ctx.arc(x, y, radiusNode, 0, Math.PI * 2); // Радиус круга 12px (24px диаметр)
-      ctx.fillStyle = 'blue';
+      ctx.fillStyle = colorNode;
       ctx.fill();
       ctx.closePath();
-    });
-
-    edges.forEach((connectedNodes, from) => {
-      connectedNodes.forEach((distance, to) => {
-        const { x: x1, y: y1 } = points[from];
-        const { x: x2, y: y2 } = points[to];
-
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.strokeStyle = 'gray';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // 🔹 2. Вывод расстояния на середине линии
-        const midX = (x1 + x2) / 2;
-        const midY = (y1 + y2) / 2;
-        ctx.font = '14px Arial';
-        ctx.fillStyle = 'black';
-        ctx.fillText(distance.toFixed(1), midX, midY);
-      });
     });
   };
 

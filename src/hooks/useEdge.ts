@@ -1,13 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IEdge } from '../types/index.type';
 
 const useEdge = () => {
   const [edges, setEdges] = useState<IEdge>(new Map());
 
-  // Вычисление расстояния между точками
-  const calculateDistance = (x1: number, y1: number, x2: number, y2: number) => {
-    return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
-  };
+  useEffect(() => {
+    console.log('edges', edges);
+  }, [edges]);
 
   // Добавить связь с расстоянием
   const addEdge = (from: number, to: number, distance: number) => {
@@ -31,8 +30,26 @@ const useEdge = () => {
     });
   };
 
+  // Удалить все связи с точкой
+  const removeEdgesForPoint = (point: number) => {
+    setEdges((prevEdges) => {
+      const newEdges = new Map(prevEdges);
+      const connectedNodes = newEdges.get(point);
+      if (connectedNodes) {
+        connectedNodes.forEach((_, to) => {
+          newEdges.get(to)?.delete(point);
+        });
+        newEdges.delete(point);
+      }
+      return newEdges;
+    });
+  };
+
   // Проверить, есть ли связь
-  const hasEdge = (from: number, to: number) => {
+  const hasEdge = (from: number, to?: number) => {
+    if (to === undefined) {
+      return !!edges.get(from)?.size || false;
+    }
     return edges.get(from)?.has(to) || false;
   };
 
@@ -46,12 +63,13 @@ const useEdge = () => {
 
   return {
     edges,
+    setEdges,
     addEdge,
     removeEdge,
+    removeEdgesForPoint,
     hasEdge,
     getDistance,
     clearEdges,
-    calculateDistance,
   };
 };
 

@@ -5,10 +5,9 @@ export interface IPoint {
 
 export type IEdge = Map<number, Map<number, number>>;
 
-export enum MODE {
-  EDIT = 'edit',
-  CREATE = 'create',
-  DELETE = 'delete',
+export enum STATES_GRAPH {
+  CREATE_EDGE = 'create_edge',
+  EDIT_EDGE = 'edit_edge',
 }
 
 export enum STATE {

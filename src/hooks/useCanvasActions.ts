@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { STATE } from '../types/index.type';
 import useEdge from './useEdge';
 import { usePoint } from './usePoint';
@@ -15,8 +15,17 @@ const useCanvasActions = ({ state }: Props) => {
   const pointState = usePoint();
   const { points } = pointState;
   const { edges } = edgeState;
-  const { redrawCanvas } = useCanvasRenderer({ canvasRef, points, edges });
-  const { handleEvent } = useCanvasHandlers({ canvasRef, state, pointState, redrawCanvas, edgeState });
+  const [activeEdge, setActiveEdge] = useState<number | null>(null);
+  const { redrawCanvas } = useCanvasRenderer({ canvasRef, points, edges, activeEdge });
+  const { handleEvent } = useCanvasHandlers({
+    canvasRef,
+    state,
+    pointState,
+    redrawCanvas,
+    edgeState,
+    activeEdge,
+    setActiveEdge,
+  });
 
   return {
     canvasRef,
