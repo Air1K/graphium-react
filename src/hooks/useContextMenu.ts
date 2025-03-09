@@ -1,9 +1,21 @@
 import React, { useEffect, useState } from 'react';
+import { UseCanvasStateReturnType } from './useCanvasState';
 
-const useContextMenu = () => {
+interface Props {
+  canvasState: UseCanvasStateReturnType;
+}
+
+const useContextMenu = ({ canvasState }: Props) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
-
+  const { toggleGrid, updateScaleUp, updateScaleDown, updateGridSizeUp, updateGridSizeDown } = canvasState;
+  const menuItems = [
+    { label: '+ Сетка', action: updateGridSizeUp },
+    { label: '- Сетка', action: updateGridSizeDown },
+    { label: 'Скрыть / Показать', action: toggleGrid },
+    { label: '+ Увеличить масштаб', action: updateScaleUp },
+    { label: '- Уменьшить масштаб', action: updateScaleDown },
+  ];
   const handleContextMenu = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault(); // Отключаем стандартное контекстное меню
     setMenuPosition({ x: e.clientX, y: e.clientY });
@@ -32,6 +44,7 @@ const useContextMenu = () => {
     menuPosition,
     handleContextMenu,
     handleCloseMenu,
+    menuItems,
   };
 };
 

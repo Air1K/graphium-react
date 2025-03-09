@@ -34,7 +34,7 @@
     "@storybook/react-vite": "^8.5.3",
     "@storybook/test": "^8.5.3",
     "@types/react": "^18.3.18",
-    "@types/react-dom": "^19.0.3",
+    "@types/react-dom": "^18.3.5",
     "eslint": "^9.19.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.3",
@@ -65,5 +65,8 @@
     "extends": [
       "plugin:storybook/recommended"
     ]
+  },
+  "dependencies": {
+    "uuid": "^11.1.0"
   }
 }

@@ -1,85 +1,113 @@
-import { IEdge, IPoint } from '../types/index.type';
+import { IEdge, IPosition, PointsMap } from '../types/index.type';
 import { colorEdge, colorEdgeText, colorNode, radiusNode, weightEdge } from '../constants/constants';
 import { useEffect } from 'react';
 import { calculateDistance } from '../utils/calculateDistance';
+import { UseCanvasStateReturnType } from './useCanvasState';
+import { drawGrid } from '../utils/canvas/drawGrid';
 
 interface Props {
   canvasRef: React.RefObject<HTMLCanvasElement>;
-  points: IPoint[];
+  canvasState: UseCanvasStateReturnType;
+  points: PointsMap;
   edges: IEdge;
-  activeEdge: number | null;
+  activeEdge: string | null;
 }
 
 export interface RedrawCanvasFunction {
   (
-    redrawPoint?: (point: IPoint, index: number) => IPoint,
-    redrawEdge?: ({ pointTo, index }: { pointTo?: IPoint; index: number }) => IPoint | undefined
+    redrawPoint?: (point: IPosition, id: string) => IPosition,
+    redrawEdge?: ({ pointTo, id }: { pointTo?: IPosition; id: string }) => IPosition | undefined
   ): void;
 }
 
-export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge }: Props) => {
+export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvasState }: Props) => {
+  const { scale, gridSize, showGrid, offset } = canvasState;
+
   const redrawCanvas: RedrawCanvasFunction = (redrawPoint, redrawEdge) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
+    ctx.save();
+    ctx.resetTransform();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // console.clear();
+    ctx.translate(canvas.width / 2 + offset.current.current.x, canvas.height / 2 + offset.current.current.y);
+    ctx.scale(scale, scale);
+    ctx.translate(-canvas.width / 2, -canvas.height / 2);
+    const transform = ctx.getTransform();
+    // console.log(transform);
+    console.log(transform.e, transform.f);
+    drawGrid(ctx, canvas.width, canvas.height, gridSize, scale, showGrid);
     edges.forEach((connectedNodes, from) => {
-      // console.log('forEach edges', connectedNodes?.size, Boolean(connectedNodes?.size));
-      connectedNodes.forEach((distance, to) => {
-        const positionFrom = activeEdge !== null ? points[from] : redrawEdge?.({ pointTo: points[from], index: from });
-        const positionTo = activeEdge !== null ? points[to] : redrawEdge?.({ pointTo: points[to], index: to });
+      const positionFrom = points[from];
+      if (!positionFrom) return;
 
-        // console.log(positionFrom);
-        const { x: x1, y: y1 } = positionFrom ?? points[from];
-        const { x: x2, y: y2 } = positionTo ?? points[to];
+      connectedNodes.forEach((distance, to) => {
+        const positionTo = points[to];
+        if (!positionTo) return;
+
+        const p1 =
+          redrawEdge && !activeEdge
+            ? (redrawEdge({ pointTo: positionFrom.position, id: from }) ?? positionFrom.position)
+            : positionFrom.position;
+        const p2 =
+          redrawEdge && !activeEdge
+            ? (redrawEdge({ pointTo: positionTo.position, id: to }) ?? positionTo.position)
+            : positionTo.position;
+
         ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
         ctx.strokeStyle = colorEdge;
         ctx.lineWidth = weightEdge;
         ctx.stroke();
-
-        // Вывод расстояния на середине линии
-        const newDistance =
-          positionFrom && positionTo ? calculateDistance({ point1: positionFrom, point2: positionTo }) : distance;
-        const midX = (x1 + x2) / 2;
-        const midY = (y1 + y2) / 2;
+        const newDistance = calculateDistance({ point1: p1, point2: p2 });
+        const midX = (p1.x + p2.x) / 2;
+        const midY = (p1.y + p2.y) / 2;
         ctx.font = '14px Arial';
         ctx.fillStyle = colorEdgeText;
         ctx.fillText(newDistance.toFixed(1), midX, midY);
       });
     });
     if (activeEdge !== null) {
-      const newPos = redrawEdge?.({ index: activeEdge });
+      const newPos = redrawEdge?.({ id: activeEdge });
       if (newPos) {
-        const { x: x1, y: y1 } = points[activeEdge];
-        const { x: x2, y: y2 } = newPos;
+        const p1 = points[activeEdge].position;
         ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(newPos.x, newPos.y);
+        ctx.setLineDash([10, 5]);
         ctx.strokeStyle = colorEdge;
         ctx.lineWidth = 4;
         ctx.stroke();
+        ctx.setLineDash([]);
       }
     }
 
-    points.forEach((point, index) => {
-      const { x, y } = redrawPoint?.(point, index) ?? point;
+    // Отрисовка точек
+    Object.entries(points).forEach(([id, point], index) => {
+      const p = redrawPoint ? redrawPoint(point.position, id) : point.position;
       ctx.beginPath();
-      ctx.arc(x, y, radiusNode, 0, Math.PI * 2); // Радиус круга 12px (24px диаметр)
+      ctx.arc(p.x, p.y, radiusNode, 0, Math.PI * 2);
       ctx.fillStyle = colorNode;
       ctx.fill();
       ctx.closePath();
+      ctx.font = '14px Arial';
+      ctx.fillStyle = 'white';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(index.toString(), p.x, p.y);
     });
+    ctx.restore();
   };
 
-  // Отрисовка точек
+  useEffect(() => {
+    console.log('offset', offset);
+  }, [offset]);
+
   useEffect(() => {
     redrawCanvas();
-  }, [points, edges]);
+  }, [points, edges, scale, gridSize, showGrid]);
 
   return { redrawCanvas };
 };

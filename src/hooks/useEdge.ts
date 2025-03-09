@@ -9,7 +9,7 @@ const useEdge = () => {
   }, [edges]);
 
   // Добавить связь с расстоянием
-  const addEdge = (from: number, to: number, distance: number) => {
+  const addEdge = (from: string, to: string, distance: number) => {
     setEdges((prevEdges) => {
       const newEdges = new Map(prevEdges);
       if (!newEdges.has(from)) newEdges.set(from, new Map());
@@ -21,7 +21,7 @@ const useEdge = () => {
   };
 
   // Удалить связь
-  const removeEdge = (from: number, to: number) => {
+  const removeEdge = (from: string, to: string) => {
     setEdges((prevEdges) => {
       const newEdges = new Map(prevEdges);
       newEdges.get(from)?.delete(to);
@@ -31,22 +31,26 @@ const useEdge = () => {
   };
 
   // Удалить все связи с точкой
-  const removeEdgesForPoint = (point: number) => {
+  const removeEdgesForPoint = (idPoint: string) => {
     setEdges((prevEdges) => {
+      console.log('prevEdges', prevEdges);
       const newEdges = new Map(prevEdges);
-      const connectedNodes = newEdges.get(point);
+      const connectedNodes = newEdges.get(idPoint);
       if (connectedNodes) {
         connectedNodes.forEach((_, to) => {
-          newEdges.get(to)?.delete(point);
+          console.log('В to = ', to, ' удалена связь с ', idPoint);
+          newEdges.get(to)?.delete(idPoint);
         });
-        newEdges.delete(point);
+        console.log('В point = ', idPoint, ' удалены все связи');
+        newEdges.delete(idPoint);
       }
+      console.log('newEdges', newEdges);
       return newEdges;
     });
   };
 
   // Проверить, есть ли связь
-  const hasEdge = (from: number, to?: number) => {
+  const hasEdge = (from: string, to?: string) => {
     if (to === undefined) {
       return !!edges.get(from)?.size || false;
     }
@@ -54,7 +58,7 @@ const useEdge = () => {
   };
 
   // Получить расстояние между точками
-  const getDistance = (from: number, to: number) => {
+  const getDistance = (from: string, to: string) => {
     return edges.get(from)?.get(to) ?? null;
   };
 
