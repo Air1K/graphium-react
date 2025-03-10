@@ -10,6 +10,7 @@ export interface IPosition {
 }
 
 export type IEdge = Map<string, Map<string, number>>;
+//WeakMap
 
 export enum STATES_GRAPH {
   CREATE_EDGE = 'create_edge',

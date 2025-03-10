@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React from 'react';
 import useContextMenu from '../../hooks/useContextMenu';
 import ContextMenu from '../ContextMenu/ContextMenu';
 import styles from './Area.module.scss';

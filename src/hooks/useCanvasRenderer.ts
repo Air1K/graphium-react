@@ -31,7 +31,7 @@ export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvas
     ctx.save();
     ctx.resetTransform();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.translate(canvas.width / 2 + offset.current.current.x, canvas.height / 2 + offset.current.current.y);
+    ctx.translate(canvas.width / 2 + offset.current.x, canvas.height / 2 + offset.current.y);
     ctx.scale(scale, scale);
     ctx.translate(-canvas.width / 2, -canvas.height / 2);
     const transform = ctx.getTransform();

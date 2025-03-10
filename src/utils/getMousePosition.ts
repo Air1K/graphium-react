@@ -7,9 +7,9 @@ export const getMousePosition = (
   const canvas = ref.current;
   if (!canvas) return { x: 0, y: 0 };
   const rect = canvas.getBoundingClientRect();
-  console.log(scale, ((rect.width / 2) * (1 - scale)));
-  const x = (event.clientX - rect.left - ((rect.width / 2) * (1 - scale))) / scale;
-  const y = (event.clientY - rect.top - ((rect.height / 2) * (1 - scale))) / scale;
+  console.log(scale, (rect.width / 2) * (1 - scale), offset);
+  const x = (event.clientX - rect.left - offset.x - (rect.width / 2) * (1 - scale)) / scale;
+  const y = (event.clientY - rect.top - offset.y - (rect.height / 2) * (1 - scale)) / scale;
   return { x, y };
 };
 

@@ -39,7 +39,7 @@ export const useCanvasHandlers = ({
   const { edges, addEdge, hasEdge, setEdges, removeEdge, removeEdgesForPoint } = edgeState;
   const dragEdge = useRef<IPosition | null>(null);
   const { updateOffset, scale, offset: refOffset } = canvasState;
-  const offset = refOffset.current.current;
+  const offset = refOffset.current;
   const handleEvent = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (state === STATE.DISABLE) return;
 
