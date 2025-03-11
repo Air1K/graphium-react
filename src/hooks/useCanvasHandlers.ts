@@ -9,6 +9,7 @@ import { calculateDistance } from '../utils/calculateDistance';
 import { checkEdgeCollision } from '../utils/checkEdgeCollision';
 import { weightEdge } from '../constants/constants';
 import { UseCanvasStateReturnType } from './useCanvasState';
+import { snapToGrid } from '../utils/snapToGrid';
 
 interface Props {
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -38,7 +39,7 @@ export const useCanvasHandlers = ({
   const dragPoint = useRef<IPosition | null>(null);
   const { edges, addEdge, hasEdge, setEdges, removeEdge, removeEdgesForPoint } = edgeState;
   const dragEdge = useRef<IPosition | null>(null);
-  const { updateOffset, scale, offset: refOffset } = canvasState;
+  const { updateOffset, scale, offset: refOffset, gridSize, gridFixed } = canvasState;
   const offset = refOffset.current;
   const handleEvent = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (state === STATE.DISABLE) return;
@@ -57,7 +58,10 @@ export const useCanvasHandlers = ({
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
     console.log('click');
     if (event.ctrlKey) {
-      const mousePos = getMousePosition(event, canvasRef, scale, offset);
+      let mousePos = getMousePosition(event, canvasRef, scale, offset);
+      if (gridFixed) {
+        mousePos = snapToGrid(mousePos, gridSize);
+      }
       const collisionIdPoint = checkCollision(mousePos, points);
       if (collisionIdPoint === null) {
         addPoint(mousePos);
@@ -112,6 +116,9 @@ export const useCanvasHandlers = ({
     // Обновляем временные координаты точки
     if (activePoint !== null && dragPoint.current) {
       dragPoint.current = getMousePosition(event, canvasRef, scale, offset);
+      if (gridFixed) {
+        dragPoint.current = snapToGrid(dragPoint.current, gridSize);
+      }
       redrawCanvas(
         (point, id) => (activePoint === id && dragPoint.current ? dragPoint.current : point),
         hasEdge(activePoint)

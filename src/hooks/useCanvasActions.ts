@@ -5,6 +5,7 @@ import { usePoint } from './usePoint';
 import { useCanvasRenderer } from './useCanvasRenderer';
 import { useCanvasHandlers } from './useCanvasHandlers';
 import { useCanvasState } from './useCanvasState';
+import { usePathFinding } from './usePathFinding';
 
 interface Props {
   state: STATE;
@@ -15,6 +16,9 @@ const useCanvasActions = ({ state }: Props) => {
   const edgeState = useEdge();
   const pointState = usePoint();
   const canvasState = useCanvasState();
+  const {setSelectedPoints} = usePathFinding({
+    edges: edgeState.edges,
+  });
   const { points } = pointState;
   const { edges } = edgeState;
   const [activeEdge, setActiveEdge] = useState<string | null>(null);

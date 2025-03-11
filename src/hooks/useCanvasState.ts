@@ -6,7 +6,7 @@ export const useCanvasState = () => {
   const offset = useRef({ x: 0, y: 0 }); // Смещение
   const [showGrid, setShowGrid] = useState(true); // Показывать сетку
   const [gridSize, setGridSize] = useState(50); // Размер ячеек сетки
-  const prevScale = useRef(scale);
+  const [gridFixed, setGridFixed] = useState(false);
   // Изменение масштаба
   const updateScaleUp = () => {
     setScale((prevScale) => Math.min(5, prevScale + 0.2));
@@ -27,6 +27,11 @@ export const useCanvasState = () => {
   // Включение/выключение сетки
   const toggleGrid = () => {
     setShowGrid((prev) => !prev);
+  };
+
+  // Включение/выключение фиксированной сетки
+  const toggleGridFixed = () => {
+    setGridFixed((prev) => !prev);
   };
 
   const updateOffset = (dx: number, dy: number) => {
@@ -51,6 +56,8 @@ export const useCanvasState = () => {
     updateGridSizeDown,
     offset,
     updateOffset,
+    toggleGridFixed,
+    gridFixed,
   };
 };
 

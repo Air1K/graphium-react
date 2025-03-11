@@ -17,6 +17,7 @@ export default [
     plugins: { prettier: prettierPlugin },
     rules: {
       'prettier/prettier': 'warn',
+      // 'max-len': 'off',
     },
   },
   {

@@ -4,7 +4,8 @@ export const drawGrid = (
   height: number,
   gridSize: number,
   scale: number,
-  showGrid: boolean
+  showGrid: boolean,
+  offset: { x: number; y: number } = { x: 0, y: 0 }
 ) => {
   if (!showGrid) return;
 
@@ -16,11 +17,14 @@ export const drawGrid = (
   ctx.lineWidth = 1 / scale;
   const step = gridSize;
 
-  for (let x = 0; x < width / scale; x += step) {
+  const offsetX = (offset.x % step) - step;
+  const offsetY = (offset.y % step) - step;
+
+  for (let x = offsetX; x < width / scale; x += step) {
     ctx.moveTo(x, 0);
     ctx.lineTo(x, height / scale);
   }
-  for (let y = 0; y < height / scale; y += step) {
+  for (let y = offsetY; y < height / scale; y += step) {
     ctx.moveTo(0, y);
     ctx.lineTo(width / scale, y);
   }
