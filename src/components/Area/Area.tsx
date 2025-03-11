@@ -1,10 +1,11 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React from 'react';
 import useContextMenu from '../../hooks/useContextMenu';
 import ContextMenu from '../ContextMenu/ContextMenu';
 import styles from './Area.module.scss';
 import baseStyles from '../../styles/index.module.scss';
 import useCanvasActions from '../../hooks/useCanvasActions';
 import { STATE } from '../../types/index.type';
+import { usePathFinding } from '../../hooks/usePathFinding';
 export interface AreaProps {
   width?: number;
   height?: number;
@@ -13,22 +14,13 @@ export interface AreaProps {
 }
 
 const Area = ({ width = 800, height = 600, state = STATE.ENABLE, children }: AreaProps): React.ReactElement => {
-  const { menuVisible, menuPosition, handleContextMenu, handleCloseMenu } = useContextMenu();
-  const menuItems = [
-    { label: 'Action 1', action: 'Action 1' },
-    { label: 'Action 2', action: 'Action 2' },
-    { label: 'Action 3', action: 'Action 3' },
-  ];
-
-  console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
-
-  const { canvasRef, events } = useCanvasActions({ state });
-
+  const { canvasRef, events, canvasState } = useCanvasActions({ state });
+  const { menuVisible, menuPosition, handleContextMenu, handleCloseMenu, menuItems } = useContextMenu({ canvasState });
+  console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
   return (
-    <div className={`${baseStyles.root} ${styles.area}`}>
+    <div onContextMenu={handleContextMenu} className={`${baseStyles.root} ${styles.area}`}>
       <canvas {...events} ref={canvasRef} width={width} height={height} className={styles.canvas} />
-      {/*{menuVisible && }*/}
-      <ContextMenu x={0} y={0} onClose={handleCloseMenu} items={menuItems} />
+      {menuVisible && <ContextMenu x={menuPosition.x} y={menuPosition.y} onClose={handleCloseMenu} items={menuItems} />}
       {children}
     </div>
   );

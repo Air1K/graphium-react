@@ -1,9 +1,16 @@
-export interface IPoint {
+interface IPoint {
+  position: IPosition;
+}
+
+export type PointsMap = Record<string, IPoint>;
+
+export interface IPosition {
   x: number;
   y: number;
 }
 
-export type IEdge = Map<number, Map<number, number>>;
+export type IEdge = Map<string, Map<string, number>>;
+//WeakMap
 
 export enum STATES_GRAPH {
   CREATE_EDGE = 'create_edge',

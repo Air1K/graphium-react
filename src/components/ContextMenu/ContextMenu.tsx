@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 import styles from './ContextMenu.module.scss';
 interface MenuItem {
   label: string;
-  action: string;
+  action: () => void;
 }
 
 interface ContextMenuProps {
@@ -12,8 +12,8 @@ interface ContextMenuProps {
   onClose: () => void;
 }
 const ContextMenu: FC<ContextMenuProps> = ({ x, y, onClose, items }) => {
-  const handleClick = (action: string) => {
-    console.log(action);
+  const handleClick = (action: () => void) => {
+    action();
     onClose();
   };
 
