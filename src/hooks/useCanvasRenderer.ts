@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { calculateDistance } from '../utils/calculateDistance';
 import { UseCanvasStateReturnType } from './useCanvasState';
 import { drawGrid } from '../utils/canvas/drawGrid';
+import { UsePathFindingReturnType } from './usePathFinding';
 
 interface Props {
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -11,6 +12,7 @@ interface Props {
   points: PointsMap;
   edges: IEdge;
   activeEdge: string | null;
+  patchFinding: UsePathFindingReturnType;
 }
 
 export interface RedrawCanvasFunction {
@@ -20,9 +22,9 @@ export interface RedrawCanvasFunction {
   ): void;
 }
 
-export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvasState }: Props) => {
+export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvasState, patchFinding }: Props) => {
   const { scale, gridSize, showGrid, offset } = canvasState;
-
+  const { selectedPoints } = patchFinding;
   const redrawCanvas: RedrawCanvasFunction = (redrawPoint, redrawEdge) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -85,6 +87,19 @@ export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvas
     Object.entries(points).forEach(([id, point], index) => {
       const p = redrawPoint ? redrawPoint(point.position, id) : point.position;
       ctx.beginPath();
+      if (id === selectedPoints.start) {
+        ctx.setLineDash([]);
+        ctx.strokeStyle = colorNode;
+      } else if (id === selectedPoints.end) {
+        ctx.setLineDash([10, 10]);
+        ctx.strokeStyle = 'green';
+      }
+      ctx.arc(p.x, p.y, radiusNode + 3, 0, Math.PI * 2);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.closePath();
+
+      ctx.beginPath();
       ctx.arc(p.x, p.y, radiusNode, 0, Math.PI * 2);
       ctx.fillStyle = colorNode;
       ctx.fill();
@@ -104,7 +119,7 @@ export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvas
 
   useEffect(() => {
     redrawCanvas();
-  }, [points, edges, scale, gridSize, showGrid]);
+  }, [points, edges, scale, gridSize, showGrid, selectedPoints]);
 
   return { redrawCanvas };
 };

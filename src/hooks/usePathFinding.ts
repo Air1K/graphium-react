@@ -33,7 +33,30 @@ export const usePathFinding = ({ edges, customAlgorithm }: Props) => {
     setOptimalPath(algorithm(edges, start, end));
   }, [selectedAlgorithm, edges, selectedPoints, customAlgorithm]);
 
-  return { selectedPoints, setSelectedPoints, selectedAlgorithm, setSelectedAlgorithm, optimalPath };
+  useEffect(() => {
+    console.log(selectedPoints);
+  }, [selectedPoints]);
+
+  const addSelectedPoint = (point: string) => {
+    if (selectedPoints.start === null) {
+      setSelectedPoints({ start: point, end: null });
+      return;
+    }
+    if (selectedPoints.end === null) {
+      setSelectedPoints({ start: selectedPoints.start, end: point });
+      return;
+    }
+    if (point === selectedPoints.start) {
+      setSelectedPoints({ start: null, end: selectedPoints.end });
+      return;
+    }
+    if (point === selectedPoints.end) {
+      setSelectedPoints({ start: selectedPoints.start, end: null });
+    }
+    setSelectedPoints({ start: selectedPoints.start, end: point });
+  };
+
+  return { selectedPoints, setSelectedPoints, selectedAlgorithm, setSelectedAlgorithm, optimalPath, addSelectedPoint };
 };
 
 export type UsePathFindingReturnType = ReturnType<typeof usePathFinding>;

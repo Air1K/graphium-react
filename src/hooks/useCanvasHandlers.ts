@@ -10,6 +10,7 @@ import { checkEdgeCollision } from '../utils/checkEdgeCollision';
 import { weightEdge } from '../constants/constants';
 import { UseCanvasStateReturnType } from './useCanvasState';
 import { snapToGrid } from '../utils/snapToGrid';
+import { UsePathFindingReturnType } from './usePathFinding';
 
 interface Props {
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -20,6 +21,7 @@ interface Props {
   activeEdge: string | null;
   setActiveEdge: React.Dispatch<React.SetStateAction<string | null>>;
   canvasState: UseCanvasStateReturnType;
+  patchFinding: UsePathFindingReturnType;
 }
 
 export const useCanvasHandlers = ({
@@ -31,6 +33,7 @@ export const useCanvasHandlers = ({
   activeEdge,
   setActiveEdge,
   canvasState,
+  patchFinding,
 }: Props) => {
   const { points, addPoint, updatePoint, removePoint } = pointState;
   const [activePoint, setActivePoint] = useState<string | null>(null);
@@ -40,6 +43,7 @@ export const useCanvasHandlers = ({
   const { edges, addEdge, hasEdge, setEdges, removeEdge, removeEdgesForPoint } = edgeState;
   const dragEdge = useRef<IPosition | null>(null);
   const { updateOffset, scale, offset: refOffset, gridSize, gridFixed } = canvasState;
+  const { addSelectedPoint } = patchFinding;
   const offset = refOffset.current;
   const handleEvent = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (state === STATE.DISABLE) return;
@@ -56,7 +60,6 @@ export const useCanvasHandlers = ({
   };
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    console.log('click');
     if (event.ctrlKey) {
       let mousePos = getMousePosition(event, canvasRef, scale, offset);
       if (gridFixed) {
@@ -102,17 +105,19 @@ export const useCanvasHandlers = ({
     }
   };
   const handleDoubleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    console.log('dblclick');
     const mousePos = getMousePosition(event, canvasRef, scale, offset);
     const collisionIdPoint = checkCollision(mousePos, points);
-    if (collisionIdPoint !== null) {
-      setActiveEdge(collisionIdPoint);
-      dragEdge.current = mousePos;
+    if (collisionIdPoint === null) return;
+    if (event.shiftKey) {
+      addSelectedPoint(collisionIdPoint);
+      return;
     }
+
+    setActiveEdge(collisionIdPoint);
+    dragEdge.current = mousePos;
   };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    console.log('move');
     // Обновляем временные координаты точки
     if (activePoint !== null && dragPoint.current) {
       dragPoint.current = getMousePosition(event, canvasRef, scale, offset);
@@ -143,7 +148,6 @@ export const useCanvasHandlers = ({
   };
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    console.log('down');
     const canvas = canvasRef.current;
     if (!canvas) return;
     const mousePos = getMousePosition(event, canvasRef, scale, offset);
@@ -159,7 +163,6 @@ export const useCanvasHandlers = ({
   };
 
   const handleMouseUp = () => {
-    console.log('up');
     if (activePoint !== null && dragPoint.current !== null) {
       updatePoint(activePoint, dragPoint.current);
       if (hasEdge(activePoint)) {

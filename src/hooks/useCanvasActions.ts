@@ -16,13 +16,13 @@ const useCanvasActions = ({ state }: Props) => {
   const edgeState = useEdge();
   const pointState = usePoint();
   const canvasState = useCanvasState();
-  const {setSelectedPoints} = usePathFinding({
+  const patchFinding = usePathFinding({
     edges: edgeState.edges,
   });
   const { points } = pointState;
   const { edges } = edgeState;
   const [activeEdge, setActiveEdge] = useState<string | null>(null);
-  const { redrawCanvas } = useCanvasRenderer({ canvasRef, points, edges, activeEdge, canvasState });
+  const { redrawCanvas } = useCanvasRenderer({ canvasRef, points, edges, activeEdge, canvasState, patchFinding });
   const { handleEvent } = useCanvasHandlers({
     canvasRef,
     state,
@@ -32,6 +32,7 @@ const useCanvasActions = ({ state }: Props) => {
     activeEdge,
     setActiveEdge,
     canvasState,
+    patchFinding,
   });
 
   return {
