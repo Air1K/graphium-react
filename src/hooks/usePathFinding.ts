@@ -34,8 +34,8 @@ export const usePathFinding = ({ edges, customAlgorithm }: Props) => {
   }, [selectedAlgorithm, edges, selectedPoints, customAlgorithm]);
 
   useEffect(() => {
-    console.log(selectedPoints);
-  }, [selectedPoints]);
+    console.log(optimalPath);
+  }, [optimalPath]);
 
   const addSelectedPoint = (point: string) => {
     if (selectedPoints.start === null) {

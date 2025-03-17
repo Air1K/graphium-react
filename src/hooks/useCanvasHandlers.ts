@@ -21,7 +21,7 @@ interface Props {
   activeEdge: string | null;
   setActiveEdge: React.Dispatch<React.SetStateAction<string | null>>;
   canvasState: UseCanvasStateReturnType;
-  patchFinding: UsePathFindingReturnType;
+  pathFinding: UsePathFindingReturnType;
 }
 
 export const useCanvasHandlers = ({
@@ -33,7 +33,7 @@ export const useCanvasHandlers = ({
   activeEdge,
   setActiveEdge,
   canvasState,
-  patchFinding,
+  pathFinding,
 }: Props) => {
   const { points, addPoint, updatePoint, removePoint } = pointState;
   const [activePoint, setActivePoint] = useState<string | null>(null);
@@ -43,7 +43,7 @@ export const useCanvasHandlers = ({
   const { edges, addEdge, hasEdge, setEdges, removeEdge, removeEdgesForPoint } = edgeState;
   const dragEdge = useRef<IPosition | null>(null);
   const { updateOffset, scale, offset: refOffset, gridSize, gridFixed } = canvasState;
-  const { addSelectedPoint } = patchFinding;
+  const { addSelectedPoint } = pathFinding;
   const offset = refOffset.current;
   const handleEvent = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (state === STATE.DISABLE) return;
@@ -163,7 +163,11 @@ export const useCanvasHandlers = ({
   };
 
   const handleMouseUp = () => {
-    if (activePoint !== null && dragPoint.current !== null) {
+    if (
+      activePoint !== null &&
+      dragPoint.current !== null &&
+      JSON.stringify(dragPoint.current) !== JSON.stringify(points[activePoint].position)
+    ) {
       updatePoint(activePoint, dragPoint.current);
       if (hasEdge(activePoint)) {
         const point1 = dragPoint.current ?? { x: 0, y: 0 };
@@ -180,9 +184,9 @@ export const useCanvasHandlers = ({
           return newEdges;
         });
       }
-      dragPoint.current = null;
-      setActivePoint(null);
     }
+    dragPoint.current = null;
+    setActivePoint(null);
     setIsDragging(false);
   };
 

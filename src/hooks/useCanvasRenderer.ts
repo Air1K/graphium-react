@@ -12,7 +12,7 @@ interface Props {
   points: PointsMap;
   edges: IEdge;
   activeEdge: string | null;
-  patchFinding: UsePathFindingReturnType;
+  pathFinding: UsePathFindingReturnType;
 }
 
 export interface RedrawCanvasFunction {
@@ -22,9 +22,9 @@ export interface RedrawCanvasFunction {
   ): void;
 }
 
-export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvasState, patchFinding }: Props) => {
+export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvasState, pathFinding }: Props) => {
   const { scale, gridSize, showGrid, offset } = canvasState;
-  const { selectedPoints } = patchFinding;
+  const { selectedPoints, optimalPath } = pathFinding;
   const redrawCanvas: RedrawCanvasFunction = (redrawPoint, redrawEdge) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -83,19 +83,46 @@ export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvas
       }
     }
 
+    if (optimalPath.length > 1) {
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(255,196,0,0.5)';
+      ctx.lineWidth = weightEdge - weightEdge / 2;
+      ctx.setLineDash([]);
+
+      for (let i = 0; i < optimalPath.length - 1; i++) {
+        const from = optimalPath[i];
+        const to = optimalPath[i + 1];
+
+        let positionFrom = points[from]?.position;
+        let positionTo = points[to]?.position;
+        if (!positionFrom || !positionTo) continue;
+        if (redrawEdge && !activeEdge) {
+          positionFrom = redrawEdge({ pointTo: positionFrom, id: from }) ?? positionFrom;
+          positionTo = redrawEdge({ pointTo: positionTo, id: to }) ?? positionTo;
+        }
+        ctx.moveTo(positionFrom.x, positionFrom.y);
+        ctx.lineTo(positionTo.x, positionTo.y);
+      }
+
+      ctx.stroke();
+      ctx.closePath();
+    }
+
     // Отрисовка точек
     Object.entries(points).forEach(([id, point], index) => {
       const p = redrawPoint ? redrawPoint(point.position, id) : point.position;
-      ctx.beginPath();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = 'black';
       if (id === selectedPoints.start) {
-        ctx.setLineDash([]);
+        ctx.setLineDash([8, 2]);
         ctx.strokeStyle = colorNode;
       } else if (id === selectedPoints.end) {
-        ctx.setLineDash([10, 10]);
-        ctx.strokeStyle = 'green';
+        ctx.setLineDash([8, 2]);
+        ctx.strokeStyle = '#002aff';
       }
+      ctx.beginPath();
       ctx.arc(p.x, p.y, radiusNode + 3, 0, Math.PI * 2);
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 2;
       ctx.stroke();
       ctx.closePath();
 
@@ -114,12 +141,8 @@ export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvas
   };
 
   useEffect(() => {
-    console.log('offset', offset);
-  }, [offset]);
-
-  useEffect(() => {
     redrawCanvas();
-  }, [points, edges, scale, gridSize, showGrid, selectedPoints]);
+  }, [points, edges, scale, gridSize, showGrid, selectedPoints, optimalPath]);
 
   return { redrawCanvas };
 };
