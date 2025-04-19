@@ -28,48 +28,68 @@
 //   ctx.restore();
 // };
 
+import { infoPanel } from './infoPanel';
+
 interface Props {
   ctx: CanvasRenderingContext2D;
   width: number;
   height: number;
-  gridSize: number;
   scale: number;
   showGrid: boolean;
   offset: { x: number; y: number };
 }
 
-export const drawGrid = ({ ctx, width, height, gridSize, scale, showGrid, offset }: Props) => {
-  const scaledGridSize = gridSize * scale; // Шаг с учетом масштаба
+export const drawGrid = ({ ctx, width, height, scale, showGrid, offset }: Props) => {
+  if (!showGrid) return;
 
+  const scaledGridSize = 50 * scale;
+
+  ctx.clearRect(0, 0, width, height);
+  ctx.save();
   ctx.beginPath();
-  ctx.strokeStyle = "#ccc";
-  const deltaScale = 1 - scale;
-  // Смещение для сетки
-  const offsetX = -(width * deltaScale) / 2;
-  const offsetY = -(height * deltaScale) / 2;
-  // Вертикальные линии
+  ctx.strokeStyle = '#e0e0e0';
+  ctx.lineWidth = 1;
+  const center = { x: width / 2, y: height / 2 };
+  const gridWidth = ((width / scale) % scaledGridSize) / 2;
+  const startX = (width - width / scale) / 2 + gridWidth;
+  const endX = (width + width / scale) / 2;
+  const startY = (height - height / scale) / 2;
+  const endY = (height + height / scale) / 2;
 
-  drawPoint(ctx, offsetX, offsetY, 5);
-  for (let x = offsetX; x < width; x += scaledGridSize) {
-    ctx.moveTo(x, offsetY);
-    ctx.lineTo(x, height);
+  const offsetX = offset.x / scale - startX;
+
+  const delOffsetX = Math.ceil(offsetX / scaledGridSize) * scaledGridSize;
+  const delOffsetY = offset.y % scaledGridSize;
+
+  infoPanel({ ctx, text: ` delOffsetX: ${delOffsetX}`, x: 500, y: 0 });
+  for (let x = startX - delOffsetX; x < endX; x += scaledGridSize) {
+    ctx.moveTo(x, startY);
+    ctx.lineTo(x, endY);
   }
+  // Вычисляем стартовые линии с учётом offset
+  // const delOffsetX = offset.x % scaledGridSize;
+  // const offsetXInScale = offset.x + width * (1 - scale);
+  // const widthInScale = (width - offset.x) / scale;
+  //
+  // const delOffsetY = offset.y % scaledGridSize;
+  // const offsetYInScale = offset.y + height * (1 - scale);
+  // const heightInScale = (height - offset.y) / scale;
+  //
+  // let horizontalLinesCount = 0;
+  // infoPanel({ ctx, text: `oXInS: ${offsetXInScale}, oYInS: ${offsetYInScale}`, x: 0, y: 0 });
+  // // Вертикальные линии
+  // for (let x = -offsetXInScale + delOffsetX; x < widthInScale; x += scaledGridSize) {
+  //   ctx.moveTo(x, -offsetYInScale);
+  //   ctx.lineTo(x, heightInScale);
+  // }
 
   // Горизонтальные линии
-  for (let y = offsetY; y < height - offsetY; y += scaledGridSize) {
-    ctx.moveTo(offsetX, y);
-    ctx.lineTo(width, y);
-  }
-
+  // for (let y = -offsetYInScale + delOffsetY; y < heightInScale; y += scaledGridSize) {
+  //   ctx.moveTo(-offsetXInScale, y);
+  //   ctx.lineTo(widthInScale, y);
+  //   horizontalLinesCount++;
+  // }
+  // infoPanel({ ctx, text: ` ->> ${horizontalLinesCount}`, x: 500, y: 0 });
   ctx.stroke();
-  ctx.closePath();
-};
-
-
-export const drawPoint = (ctx, x, y, radius = 5) => {
-  ctx.beginPath();
-  ctx.arc(x, y, radius, 0, Math.PI * 2); // Рисуем круг
-  ctx.fillStyle = "red"; // Цвет точки
-  ctx.fill();
-  ctx.closePath();
+  ctx.restore();
 };

@@ -36,7 +36,14 @@ export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvas
     ctx.translate(canvas.width / 2 + offset.current.x, canvas.height / 2 + offset.current.y);
     ctx.scale(scale, scale);
     ctx.translate(-canvas.width / 2, -canvas.height / 2);
-    drawGrid(ctx, canvas.width, canvas.height, gridSize, scale, showGrid, offset.current);
+    drawGrid({
+      ctx,
+      width: canvas.width,
+      height: canvas.height,
+      scale,
+      showGrid,
+      offset: offset.current,
+    });
     edges.forEach((connectedNodes, from) => {
       const positionFrom = points[from];
       if (!positionFrom) return;
