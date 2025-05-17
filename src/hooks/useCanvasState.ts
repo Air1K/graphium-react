@@ -9,11 +9,11 @@ export const useCanvasState = () => {
   const [gridFixed, setGridFixed] = useState(false);
   // Изменение масштаба
   const updateScaleUp = () => {
-    setScale((prevScale) => Math.min(5, prevScale + 0.2));
+    setScale((prevScale) => Math.min(2, prevScale + 0.2));
   };
 
   const updateScaleDown = () => {
-    setScale((prevScale) => Math.max(0.2, prevScale - 0.2));
+    setScale((prevScale) => Math.max(0.5, prevScale - 0.2));
   };
 
   const updateGridSizeUp = () => {

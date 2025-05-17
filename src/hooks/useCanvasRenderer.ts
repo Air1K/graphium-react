@@ -33,17 +33,23 @@ export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvas
     ctx.save();
     ctx.resetTransform();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // ctx.translate(canvas.width / 2 + offset.current.x, canvas.height / 2 + offset.current.y);
+    // ctx.scale(scale, scale);
+    // ctx.translate(-canvas.width / 2, -canvas.height / 2);
+    if (showGrid) {
+      drawGrid({
+        ctx,
+        width: canvas.width,
+        height: canvas.height,
+        scale,
+        offset: offset.current, // смещение в px
+      });
+    }
+    ctx.resetTransform();
     ctx.translate(canvas.width / 2 + offset.current.x, canvas.height / 2 + offset.current.y);
     ctx.scale(scale, scale);
     ctx.translate(-canvas.width / 2, -canvas.height / 2);
-    drawGrid({
-      ctx,
-      width: canvas.width,
-      height: canvas.height,
-      scale,
-      showGrid,
-      offset: offset.current,
-    });
     edges.forEach((connectedNodes, from) => {
       const positionFrom = points[from];
       if (!positionFrom) return;

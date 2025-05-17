@@ -28,68 +28,46 @@
 //   ctx.restore();
 // };
 
-import { infoPanel } from './infoPanel';
-
-interface Props {
+interface GridProps {
   ctx: CanvasRenderingContext2D;
-  width: number;
-  height: number;
-  scale: number;
-  showGrid: boolean;
-  offset: { x: number; y: number };
+  width: number; // ширина canvas в px
+  height: number; // высота canvas в px
+  scale: number; // ваш zoom (0.5…2)
+  offset: { x: number; y: number }; // смещение в px, как вы храните в canvasState
+  gridSize?: number; // базовый шаг сетки в «мировых» единицах (пикселях) — по умолчанию 50
 }
 
-export const drawGrid = ({ ctx, width, height, scale, showGrid, offset }: Props) => {
-  if (!showGrid) return;
+export const drawGrid = ({
+                           ctx, width, height, scale, offset, gridSize = 50,
+                         }: GridProps) => {
+  // 1) шаг сетки в экранных пикселях
+  const step = gridSize * scale;
 
-  const scaledGridSize = 50 * scale;
+  // 2) экранная позиция мирового (0,0):
+  //    по X: центр экрана смещён на (1-scale)*width/2, а потом панорама offset.x
+  const originScreenX = (width / 2) * (1 - scale) + offset.x;
+  const originScreenY = (height / 2) * (1 - scale) + offset.y;
 
-  ctx.clearRect(0, 0, width, height);
+  // 3) фаза — чтобы первый «мировой» нолик встал на экранную координату в [0..step)
+  const phaseX = ((originScreenX % step) + step) % step;
+  const phaseY = ((originScreenY % step) + step) % step;
+
   ctx.save();
   ctx.beginPath();
   ctx.strokeStyle = '#e0e0e0';
   ctx.lineWidth = 1;
-  const center = { x: width / 2, y: height / 2 };
-  const gridWidth = ((width / scale) % scaledGridSize) / 2;
-  const startX = (width - width / scale) / 2 + gridWidth;
-  const endX = (width + width / scale) / 2;
-  const startY = (height - height / scale) / 2;
-  const endY = (height + height / scale) / 2;
 
-  const offsetX = offset.x / scale - startX;
-
-  const delOffsetX = Math.ceil(offsetX / scaledGridSize) * scaledGridSize;
-  const delOffsetY = offset.y % scaledGridSize;
-
-  infoPanel({ ctx, text: ` delOffsetX: ${delOffsetX}`, x: 500, y: 0 });
-  for (let x = startX - delOffsetX; x < endX; x += scaledGridSize) {
-    ctx.moveTo(x, startY);
-    ctx.lineTo(x, endY);
+  // 4) рисуем вертикальные
+  for (let x = phaseX; x <= width; x += step) {
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
   }
-  // Вычисляем стартовые линии с учётом offset
-  // const delOffsetX = offset.x % scaledGridSize;
-  // const offsetXInScale = offset.x + width * (1 - scale);
-  // const widthInScale = (width - offset.x) / scale;
-  //
-  // const delOffsetY = offset.y % scaledGridSize;
-  // const offsetYInScale = offset.y + height * (1 - scale);
-  // const heightInScale = (height - offset.y) / scale;
-  //
-  // let horizontalLinesCount = 0;
-  // infoPanel({ ctx, text: `oXInS: ${offsetXInScale}, oYInS: ${offsetYInScale}`, x: 0, y: 0 });
-  // // Вертикальные линии
-  // for (let x = -offsetXInScale + delOffsetX; x < widthInScale; x += scaledGridSize) {
-  //   ctx.moveTo(x, -offsetYInScale);
-  //   ctx.lineTo(x, heightInScale);
-  // }
+  // 5) рисуем горизонтальные
+  for (let y = phaseY; y <= height; y += step) {
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+  }
 
-  // Горизонтальные линии
-  // for (let y = -offsetYInScale + delOffsetY; y < heightInScale; y += scaledGridSize) {
-  //   ctx.moveTo(-offsetXInScale, y);
-  //   ctx.lineTo(widthInScale, y);
-  //   horizontalLinesCount++;
-  // }
-  // infoPanel({ ctx, text: ` ->> ${horizontalLinesCount}`, x: 500, y: 0 });
   ctx.stroke();
   ctx.restore();
 };
