@@ -23,7 +23,7 @@ export interface RedrawCanvasFunction {
 }
 
 export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvasState, pathFinding }: Props) => {
-  const { scale, gridSize, showGrid, offset } = canvasState;
+  const { scale, grid, offset } = canvasState;
   const { selectedPoints, optimalPath } = pathFinding;
   const redrawCanvas: RedrawCanvasFunction = (redrawPoint, redrawEdge) => {
     const canvas = canvasRef.current;
@@ -37,18 +37,19 @@ export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvas
     // ctx.translate(canvas.width / 2 + offset.current.x, canvas.height / 2 + offset.current.y);
     // ctx.scale(scale, scale);
     // ctx.translate(-canvas.width / 2, -canvas.height / 2);
-    if (showGrid) {
+    if (grid.visible) {
       drawGrid({
         ctx,
         width: canvas.width,
         height: canvas.height,
-        scale,
-        offset: offset.current, // смещение в px
+        scale: scale.value,
+        offset: offset.current,
+        gridSize: grid.size,
       });
     }
     ctx.resetTransform();
     ctx.translate(canvas.width / 2 + offset.current.x, canvas.height / 2 + offset.current.y);
-    ctx.scale(scale, scale);
+    ctx.scale(scale.value, scale.value);
     ctx.translate(-canvas.width / 2, -canvas.height / 2);
     edges.forEach((connectedNodes, from) => {
       const positionFrom = points[from];
@@ -155,7 +156,7 @@ export const useCanvasRenderer = ({ canvasRef, points, edges, activeEdge, canvas
 
   useEffect(() => {
     redrawCanvas();
-  }, [points, edges, scale, gridSize, showGrid, selectedPoints, optimalPath]);
+  }, [points, edges, scale, grid.size, grid.visible, selectedPoints, optimalPath]);
 
   return { redrawCanvas };
 };

@@ -13,7 +13,7 @@ export const useCanvasState = () => {
   };
 
   const updateScaleDown = () => {
-    setScale((prevScale) => Math.max(0.5, prevScale - 0.2));
+    setScale((prevScale) => Math.max(0.4, prevScale - 0.2));
   };
 
   const updateGridSizeUp = () => {
@@ -43,21 +43,34 @@ export const useCanvasState = () => {
   }, [offset]);
 
   return {
-    scale,
-    updateScaleUp,
-    updateScaleDown,
+    grid: {
+      visible: showGrid,
+      size: gridSize,
+      fixed: gridFixed,
+      action: {
+        visible: {
+          onOrOff: toggleGrid,
+        },
+        size: {
+          up: updateGridSizeUp,
+          down: updateGridSizeDown,
+        },
+        fixed: {
+          onOrOff: toggleGridFixed,
+        },
+      },
+    },
+    scale: {
+      value: scale,
+      action: {
+        up: updateScaleUp,
+        down: updateScaleDown,
+      },
+    },
     hoveredEdge,
     setHoveredEdge,
-    showGrid,
-    toggleGrid,
-    gridSize,
-    setGridSize,
-    updateGridSizeUp,
-    updateGridSizeDown,
     offset,
     updateOffset,
-    toggleGridFixed,
-    gridFixed,
   };
 };
 

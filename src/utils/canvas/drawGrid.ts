@@ -37,9 +37,7 @@ interface GridProps {
   gridSize?: number; // базовый шаг сетки в «мировых» единицах (пикселях) — по умолчанию 50
 }
 
-export const drawGrid = ({
-                           ctx, width, height, scale, offset, gridSize = 50,
-                         }: GridProps) => {
+export const drawGrid = ({ ctx, width, height, scale, offset, gridSize = 50 }: GridProps) => {
   // 1) шаг сетки в экранных пикселях
   const step = gridSize * scale;
 

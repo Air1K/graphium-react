@@ -5,6 +5,7 @@ import { calculateDistance } from './calculateDistance';
 export const checkCollision = (mouse: IPosition, map: PointsMap): string | null => {
   for (const [id, point] of Object.entries(map)) {
     const distance = calculateDistance({ point1: mouse, point2: point.position });
+    console.log('distance', distance);
     if (distance < radiusNode) {
       return id;
     }

@@ -42,7 +42,7 @@ export const useCanvasHandlers = ({
   const dragPoint = useRef<IPosition | null>(null);
   const { edges, addEdge, hasEdge, setEdges, removeEdge, removeEdgesForPoint } = edgeState;
   const dragEdge = useRef<IPosition | null>(null);
-  const { updateOffset, scale, offset: refOffset, gridSize, gridFixed } = canvasState;
+  const { updateOffset, scale, offset: refOffset, grid } = canvasState;
   const { addSelectedPoint } = pathFinding;
   const offset = refOffset.current;
   const handleEvent = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -61,11 +61,15 @@ export const useCanvasHandlers = ({
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (event.ctrlKey) {
-      let mousePos = getMousePosition(event, canvasRef, scale, offset);
-      if (gridFixed) {
-        mousePos = snapToGrid(mousePos, gridSize);
+      let mousePos = getMousePosition(event, canvasRef, scale.value, offset);
+      if (grid.fixed) {
+        console.log('Collision with grid');
+        console.log(mousePos);
+        mousePos = snapToGrid(mousePos, grid.size);
+        console.log(mousePos);
       }
       const collisionIdPoint = checkCollision(mousePos, points);
+      console.log('Collision with grid', collisionIdPoint);
       if (collisionIdPoint === null) {
         addPoint(mousePos);
       }
@@ -73,7 +77,7 @@ export const useCanvasHandlers = ({
     }
     // Удаление
     if (event.altKey) {
-      const mousePos = getMousePosition(event, canvasRef, scale, offset);
+      const mousePos = getMousePosition(event, canvasRef, scale.value, offset);
       const collisionIdPoint = checkCollision(mousePos, points);
       if (collisionIdPoint !== null) {
         removePoint(collisionIdPoint);
@@ -88,7 +92,7 @@ export const useCanvasHandlers = ({
       return;
     }
     if (activeEdge !== null) {
-      const mousePos = getMousePosition(event, canvasRef, scale, offset);
+      const mousePos = getMousePosition(event, canvasRef, scale.value, offset);
       const collisionIdPoint = checkCollision(mousePos, points);
       if (collisionIdPoint === null || collisionIdPoint === activeEdge) {
         setActiveEdge(null);
@@ -105,7 +109,7 @@ export const useCanvasHandlers = ({
     }
   };
   const handleDoubleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    const mousePos = getMousePosition(event, canvasRef, scale, offset);
+    const mousePos = getMousePosition(event, canvasRef, scale.value, offset);
     const collisionIdPoint = checkCollision(mousePos, points);
     if (collisionIdPoint === null) return;
     if (event.shiftKey) {
@@ -120,9 +124,9 @@ export const useCanvasHandlers = ({
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     // Обновляем временные координаты точки
     if (activePoint !== null && dragPoint.current) {
-      dragPoint.current = getMousePosition(event, canvasRef, scale, offset);
-      if (gridFixed) {
-        dragPoint.current = snapToGrid(dragPoint.current, gridSize);
+      dragPoint.current = getMousePosition(event, canvasRef, scale.value, offset);
+      if (grid.fixed) {
+        dragPoint.current = snapToGrid(dragPoint.current, grid.size);
       }
       redrawCanvas(
         (point, id) => (activePoint === id && dragPoint.current ? dragPoint.current : point),
@@ -134,7 +138,7 @@ export const useCanvasHandlers = ({
     }
     // Обновляем временные координаты ребра
     if (activeEdge !== null && dragEdge.current) {
-      dragEdge.current = getMousePosition(event, canvasRef, scale, offset);
+      dragEdge.current = getMousePosition(event, canvasRef, scale.value, offset);
       redrawCanvas(undefined, (point) =>
         activeEdge === point.id && dragEdge.current ? dragEdge.current : point?.pointTo
       );
@@ -150,7 +154,7 @@ export const useCanvasHandlers = ({
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const mousePos = getMousePosition(event, canvasRef, scale, offset);
+    const mousePos = getMousePosition(event, canvasRef, scale.value, offset);
     const collisionIdPoint = checkCollision(mousePos, points);
     if (collisionIdPoint !== null) {
       setActivePoint(collisionIdPoint);
