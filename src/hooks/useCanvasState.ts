@@ -1,77 +1,80 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+
+type Edge = { from: number; to: number };
+
+function useSteppedState(initial: number, step: number, min: number, max: number) {
+  const [value, setValue] = useState(initial);
+
+  const up = useCallback(() => {
+    setValue((prev) => Math.min(max, prev + step));
+  }, [max, step]);
+
+  const down = useCallback(() => {
+    setValue((prev) => Math.max(min, prev - step));
+  }, [min, step]);
+
+  return { value, up, down, setValue };
+}
 
 export const useCanvasState = () => {
-  const [scale, setScale] = useState(1); //Масштаб
-  const [hoveredEdge, setHoveredEdge] = useState<{ from: number; to: number } | null>(null);
-  const offset = useRef({ x: 0, y: 0 }); // Смещение
-  const [showGrid, setShowGrid] = useState(true); // Показывать сетку
-  const [gridSize, setGridSize] = useState(50); // Размер ячеек сетки
+  const scale = useSteppedState(1, 0.2, 0.4, 2);
+
+  const gridSize = useSteppedState(50, 5, 10, 100);
+
+  const [showGrid, setShowGrid] = useState(true);
   const [gridFixed, setGridFixed] = useState(false);
-  // Изменение масштаба
-  const updateScaleUp = () => {
-    setScale((prevScale) => Math.min(2, prevScale + 0.2));
-  };
 
-  const updateScaleDown = () => {
-    setScale((prevScale) => Math.max(0.4, prevScale - 0.2));
-  };
+  const toggleShowGrid = useCallback(() => setShowGrid((prev) => !prev), []);
+  const toggleGridFixed = useCallback(() => setGridFixed((prev) => !prev), []);
 
-  const updateGridSizeUp = () => {
-    setGridSize((prevSize) => Math.min(100, prevSize + 5));
-  };
+  const offset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const updateOffset = useCallback((dx: number, dy: number) => {
+    offset.current.x += dx;
+    offset.current.y += dy;
+    console.log('Canvas offset:', offset.current);
+  }, []);
 
-  const updateGridSizeDown = () => {
-    setGridSize((prevSize) => Math.max(10, prevSize - 5));
-  };
+  const [hoveredEdge, setHoveredEdge] = useState<Edge | null>(null);
 
-  // Включение/выключение сетки
-  const toggleGrid = () => {
-    setShowGrid((prev) => !prev);
-  };
-
-  // Включение/выключение фиксированной сетки
-  const toggleGridFixed = () => {
-    setGridFixed((prev) => !prev);
-  };
-
-  const updateOffset = (dx: number, dy: number) => {
-    offset.current = { x: offset.current.x + dx, y: offset.current.y + dy };
-  };
-
-  useEffect(() => {
-    console.log(offset);
-  }, [offset]);
-
-  return {
-    grid: {
-      visible: showGrid,
-      size: gridSize,
-      fixed: gridFixed,
-      action: {
-        visible: {
-          onOrOff: toggleGrid,
-        },
-        size: {
-          up: updateGridSizeUp,
-          down: updateGridSizeDown,
-        },
-        fixed: {
-          onOrOff: toggleGridFixed,
+  return useMemo(
+    () => ({
+      grid: {
+        visible: showGrid,
+        size: gridSize.value,
+        fixed: gridFixed,
+        action: {
+          visible: { onOrOff: toggleShowGrid },
+          size: { up: gridSize.up, down: gridSize.down },
+          fixed: { onOrOff: toggleGridFixed },
         },
       },
-    },
-    scale: {
-      value: scale,
-      action: {
-        up: updateScaleUp,
-        down: updateScaleDown,
+      scale: {
+        value: scale.value,
+        action: {
+          up: scale.up,
+          down: scale.down,
+        },
       },
-    },
-    hoveredEdge,
-    setHoveredEdge,
-    offset,
-    updateOffset,
-  };
+      hoveredEdge,
+      setHoveredEdge,
+      offset,
+      updateOffset,
+    }),
+    [
+      showGrid,
+      gridSize.value,
+      gridSize.up,
+      gridSize.down,
+      gridFixed,
+      toggleShowGrid,
+      toggleGridFixed,
+      scale.value,
+      scale.up,
+      scale.down,
+      hoveredEdge,
+      updateOffset,
+    ]
+  );
 };
 
 export type UseCanvasStateReturnType = ReturnType<typeof useCanvasState>;

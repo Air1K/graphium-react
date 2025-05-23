@@ -19,13 +19,19 @@
         background-color: rgba(255, 255, 255, 0.3);
       }
     }
-    &:first-child>div {
-      display: flex;
-      width: 12px;
-      height: 12px;
-      > svg {
+    &:first-child {
+      > label {
+        pointer-events: none;
+        line-height: 1;
+      }
+      >div {
+        display: flex;
         width: 12px;
         height: 12px;
+        > svg {
+          width: 12px;
+          height: 12px;
+        }
       }
     }
     &:last-child {

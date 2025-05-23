@@ -14,13 +14,23 @@ export interface AreaProps {
 }
 
 const Area = ({ width = 800, height = 600, state = STATE.ENABLE, children }: AreaProps): React.ReactElement => {
-  const { canvasRef, events, canvasState } = useCanvasActions({ state });
-  const { menuVisible, menuPosition, handleContextMenu, menuRef } = useContextMenu();
+  const { canvasRef, events, canvasState, exportGraph, importGraph } = useCanvasActions({ state });
+  const { menuVisible, menuPosition, handleContextMenu, menuRef, handleCloseMenu } = useContextMenu();
   console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
   return (
     <div onContextMenu={handleContextMenu} className={`${baseStyles.root} ${styles.area}`}>
       <canvas {...events} ref={canvasRef} width={width} height={height} className={styles.canvas} />
-      {menuVisible && <ContextMenu ref={menuRef} x={menuPosition.x} y={menuPosition.y} canvasState={canvasState} />}
+      {menuVisible && (
+        <ContextMenu
+          onClose={handleCloseMenu}
+          ref={menuRef}
+          x={menuPosition.x}
+          y={menuPosition.y}
+          canvasState={canvasState}
+          exportGraph={exportGraph}
+          importGraph={importGraph}
+        />
+      )}
       {children}
     </div>
   );

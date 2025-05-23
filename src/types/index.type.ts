@@ -21,3 +21,11 @@ export enum STATE {
   ENABLE = 'enable',
   DISABLE = 'disable',
 }
+
+export type OptimalPath = {
+  id: string;
+  weight: number;
+  path: string[];
+};
+
+export type JPSData = Record<string, IPosition[]>;

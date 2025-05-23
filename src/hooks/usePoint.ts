@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 type Action =
   | { type: 'ADD_POINT'; payload: IPosition }
+  | { type: 'SET_POINTS'; payload: PointsMap }
   | { type: 'UPDATE_POINT'; payload: { id: string; position: IPosition } }
   | { type: 'REMOVE_POINT'; payload: string }
   | { type: 'CLEAR_POINTS' };
@@ -13,6 +14,9 @@ const pointsReducer = (state: PointsMap, action: Action): PointsMap => {
     case 'ADD_POINT': {
       const id = uuidv4();
       return { ...state, [id]: { position: action.payload } };
+    }
+    case 'SET_POINTS': {
+      return action.payload;
     }
     case 'UPDATE_POINT': {
       if (!state[action.payload.id]) return state;
@@ -37,6 +41,7 @@ export const usePoint = () => {
   return {
     points,
     addPoint: (point: IPosition) => dispatch({ type: 'ADD_POINT', payload: point }),
+    setPoints: (points: PointsMap) => dispatch({ type: 'SET_POINTS', payload: points }),
     updatePoint: (id: string, position: IPosition) => dispatch({ type: 'UPDATE_POINT', payload: { id, position } }),
     removePoint: (id: string) => dispatch({ type: 'REMOVE_POINT', payload: id }),
     clearPoints: () => dispatch({ type: 'CLEAR_POINTS' }),

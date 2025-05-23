@@ -1,28 +1,42 @@
-import { useRef, useState } from 'react';
-import { STATE } from '../types/index.type';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { PointsMap, STATE } from '../types/index.type';
 import useEdge from './useEdge';
 import { usePoint } from './usePoint';
 import { useCanvasRenderer } from './useCanvasRenderer';
 import { useCanvasHandlers } from './useCanvasHandlers';
 import { useCanvasState } from './useCanvasState';
 import { usePathFinding } from './usePathFinding';
+import { deserializeEdges, serializeEdges } from '../utils/canvas/serialize';
 
 interface Props {
   state: STATE;
 }
 
-const useCanvasActions = ({ state }: Props) => {
+export const useCanvasActions = ({ state }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const edgeState = useEdge();
+
+  // Core logic hooks
   const pointState = usePoint();
+  const edgeState = useEdge();
   const canvasState = useCanvasState();
-  const pathFinding = usePathFinding({
-    edges: edgeState.edges,
-  });
+  const pathFinding = usePathFinding({ edges: edgeState.edges });
+
   const { points } = pointState;
   const { edges } = edgeState;
+
+  // Active edge for highlighting
   const [activeEdge, setActiveEdge] = useState<string | null>(null);
-  const { redrawCanvas } = useCanvasRenderer({ canvasRef, points, edges, activeEdge, canvasState, pathFinding });
+
+  // Renderer and event handler
+  const { redrawCanvas } = useCanvasRenderer({
+    canvasRef,
+    points,
+    edges,
+    activeEdge,
+    canvasState,
+    pathFinding,
+  });
+
   const { handleEvent } = useCanvasHandlers({
     canvasRef,
     state,
@@ -35,16 +49,66 @@ const useCanvasActions = ({ state }: Props) => {
     pathFinding,
   });
 
-  return {
-    canvasRef,
-    events: {
+  const exportGraph = useCallback(() => {
+    const serialized = {
+      points: points as PointsMap,
+      edges: serializeEdges(edges),
+    };
+    const dataStr = JSON.stringify(serialized, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'graph.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [points, edges]);
+
+  const importGraph = useCallback(
+    (file: File) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const json = JSON.parse(reader.result as string);
+          if (
+            json &&
+            typeof json === 'object' &&
+            Array.isArray(Object.values(json.points)) &&
+            typeof json.edges === 'object'
+          ) {
+            pointState.setPoints(json.points as PointsMap);
+            edgeState.setEdges(deserializeEdges(json.edges));
+            redrawCanvas();
+          } else {
+            console.error('Invalid graph structure');
+          }
+        } catch (e) {
+          console.error('Failed to parse graph file', e);
+        }
+      };
+      reader.readAsText(file);
+    },
+    [pointState, edgeState, redrawCanvas]
+  );
+
+  // Memoized event handlers bundle
+  const events = useMemo(
+    () => ({
       onClick: handleEvent,
       onMouseMove: handleEvent,
       onMouseDown: handleEvent,
       onMouseUp: handleEvent,
       onDoubleClick: handleEvent,
-    },
+    }),
+    [handleEvent]
+  );
+
+  return {
+    canvasRef,
+    events,
     canvasState,
+    exportGraph,
+    importGraph,
   };
 };
 

@@ -13,12 +13,14 @@ interface ContextMenuProps extends React.ComponentProps<'div'> {
   y: number;
   onClose?: () => void;
   canvasState: UseCanvasStateReturnType;
+  exportGraph?: () => void;
+  importGraph?: (file: File) => void;
 }
 
-const ContextMenu: FC<ContextMenuProps> = ({ x, y, onClose, canvasState, ...props }) => {
+const ContextMenu: FC<ContextMenuProps> = ({ x, y, onClose, canvasState, exportGraph, importGraph, ...props }) => {
   const { scale, grid } = canvasState;
-  const handleClick = (action: () => void) => {
-    action();
+  const handleClick = (action?: () => void) => {
+    action?.();
     onClose?.();
   };
 
@@ -60,6 +62,24 @@ const ContextMenu: FC<ContextMenuProps> = ({ x, y, onClose, canvasState, ...prop
             onClickUp={() => scale.action.up()}
             onClickDown={() => scale.action.down()}
           />
+        </li>
+        <hr style={{ width: '100%' }} />
+        <li>
+          <LabelButton label={'Импорт'} icon={<LuLocateFixed size={12} />}>
+            <input
+              className={styles.import}
+              type='file'
+              accept='application/json'
+              onChange={(e) => {
+                if (e.target.files?.[0]) handleClick(() => importGraph?.(e.target.files![0]));
+              }}
+            />
+          </LabelButton>
+        </li>
+        <li>
+          <LabelButton label={'Экспорт'} icon={<LuLocateFixed size={12} />}>
+            <button className={styles.export} onClick={() => handleClick(exportGraph)} />
+          </LabelButton>
         </li>
         {/*{items.map((item, index) => (*/}
         {/*  <li key={index} onClick={() => handleClick(item.action)}>*/}
