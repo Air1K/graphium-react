@@ -5,6 +5,9 @@ import styles from './Area.module.scss';
 import baseStyles from '../../styles/index.module.scss';
 import useCanvasActions from '../../hooks/useCanvasActions';
 import { STATE } from '../../types/index.type';
+import JpsMotionEmulator from '../JpsMotionEmulator/JpsMotionEmulator';
+import { MOK_JPS_PROPS } from '../../constants/constants';
+import { useCanvasState } from '../../hooks/useCanvasState';
 
 export interface AreaProps {
   width?: number;
@@ -14,11 +17,13 @@ export interface AreaProps {
 }
 
 const Area = ({ width = 800, height = 600, state = STATE.ENABLE, children }: AreaProps): React.ReactElement => {
-  const { canvasRef, events, canvasState, exportGraph, importGraph } = useCanvasActions({ state });
+  const canvasState = useCanvasState();
+  const { canvasRef, events, exportGraph, importGraph } = useCanvasActions({ state, canvasState });
   const { menuVisible, menuPosition, handleContextMenu, menuRef, handleCloseMenu } = useContextMenu();
   console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
   return (
     <div onContextMenu={handleContextMenu} className={`${baseStyles.root} ${styles.area}`}>
+      <JpsMotionEmulator {...MOK_JPS_PROPS} canvasState={canvasState} />
       <canvas {...events} ref={canvasRef} width={width} height={height} className={styles.canvas} />
       {menuVisible && (
         <ContextMenu

@@ -4,21 +4,21 @@ import useEdge from './useEdge';
 import { usePoint } from './usePoint';
 import { useCanvasRenderer } from './useCanvasRenderer';
 import { useCanvasHandlers } from './useCanvasHandlers';
-import { useCanvasState } from './useCanvasState';
+import { UseCanvasStateReturnType } from './useCanvasState';
 import { usePathFinding } from './usePathFinding';
 import { deserializeEdges, serializeEdges } from '../utils/canvas/serialize';
 
 interface Props {
   state: STATE;
+  canvasState: UseCanvasStateReturnType;
 }
 
-export const useCanvasActions = ({ state }: Props) => {
+export const useCanvasActions = ({ state, canvasState }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Core logic hooks
   const pointState = usePoint();
   const edgeState = useEdge();
-  const canvasState = useCanvasState();
   const pathFinding = usePathFinding({ edges: edgeState.edges });
 
   const { points } = pointState;

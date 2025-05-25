@@ -31,7 +31,6 @@ export const useCanvasState = () => {
   const updateOffset = useCallback((dx: number, dy: number) => {
     offset.current.x += dx;
     offset.current.y += dy;
-    console.log('Canvas offset:', offset.current);
   }, []);
 
   const [hoveredEdge, setHoveredEdge] = useState<Edge | null>(null);
